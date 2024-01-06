@@ -100,6 +100,6 @@ async def update_user(
         data["password"] = hash_helper.get_password_hash(payload.password)
 
     data["updated_at"] = datetime.utcnow()
-    user = await user.update(payload.model_dump())
+    user = await user.update({"$set": data})
 
     return users_serializers.User(**user.model_dump())

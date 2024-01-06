@@ -97,3 +97,27 @@ def test_get_user_by_uuid(client_test: TestClient, data_management: DataManageme
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["status"] == status.HTTP_200_OK
     data_management.add("user_by_uuid", response.json()["data"])
+
+def test_get_user_by_uuid_not_found(client_test: TestClient, data_management: DataManagement):
+    response = client_test.get(
+        f"/v1/users/{uuid.uuid4()}",
+        headers={
+            "Authorization": f"{data_management.get('user_token')['access_token']}"
+        },
+    )
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.json()["status"] == status.HTTP_404_NOT_FOUND
+
+def test_update_user(client_test: TestClient, data_management: DataManagement):
+    payload = {
+        "first_name": "Update test",
+    }
+    response = client_test.patch(
+        f"/v1/users",
+        headers={
+            "Authorization": f"{data_management.get('user_token')['access_token']}"
+        },
+        json=payload,
+    )
+    assert response.status_code == status.HTTP_202_ACCEPTED
+    assert response.json()["status"] == status.HTTP_202_ACCEPTED
