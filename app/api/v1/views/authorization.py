@@ -8,16 +8,16 @@ from app.core.utils import response_handler
 router = APIRouter()
 
 
-@router.post("/candidates/login", response_model=authorization_serializers.LoginOut)
-async def candidate_login(payload: authorization_serializers.LoginFormSerializer):
-    """
-    API endpoint to login candidate.
-    """
-    return response_handler(
-        data=await authorization_service.candidate_login(payload),
-        status=status.HTTP_200_OK,
-        message=ResponseMessages.Retrieved,
-    )
+# @router.post("/candidates/login", response_model=authorization_serializers.LoginOut)
+# async def candidate_login(payload: authorization_serializers.LoginFormSerializer):
+#     """
+#     API endpoint to login candidate.
+#     """
+#     return response_handler(
+#         data=await authorization_service.candidate_login(payload),
+#         status=status.HTTP_200_OK,
+#         message=ResponseMessages.Retrieved,
+#     )
 
 
 @router.post("/users/login", response_model=authorization_serializers.LoginOut)

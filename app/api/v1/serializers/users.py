@@ -3,7 +3,7 @@ from uuid import UUID
 
 from beanie import PydanticObjectId
 from fastapi import Query
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 from app.core.constants import USER_SUPPORTED_FILTERS
 from app.core.enums import Order
@@ -15,7 +15,7 @@ from .base import BaseUserSerializer
 class RegisterUserSerializer(BaseUserSerializer):
     """Register User Serializer"""
 
-    ...
+    password: str = Field(max_length=255)
 
 
 class UserSearchSerializer(BaseModel):
@@ -48,6 +48,19 @@ class UpdateUserSerializer(BaseModel):
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None
     password: Optional[str] = None
+
+    @model_validator(mode="after")
+    def validate_fields(self):
+        """
+        Validate fields to be updated
+        if no fields to update raise ValueError
+        """
+
+        data = self.model_dump(exclude_none=True)
+        if not data:
+            raise ValueError("No fields to update")
+
+        return self
 
 
 class User(BaseModel):

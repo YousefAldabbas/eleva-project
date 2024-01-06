@@ -7,4 +7,3 @@ class BaseUserSerializer(BaseModel):
     first_name: str = Field(max_length=255)
     last_name: str = Field(max_length=255)
     email: EmailStr = Field(max_length=255)
-    password: str = Field(max_length=255)

@@ -19,7 +19,7 @@ async def generate_report(page_size: int, page: int):
         .limit(page_size)
         .to_list()
     )
-    
+
     candidates = [candidate.model_dump() for candidate in candidates]
 
     logger.info(f"Generating CSV report for {len(candidates)} candidates")
@@ -97,7 +97,6 @@ async def create_candidate(
     if await Candidate.find_one(Candidate.email == payload.email):
         raise CandidateEmailAlreadyExists
 
-    data["password"] = hash_helper.get_password_hash(data["password"])
     candidate = await Candidate(**data).insert()
 
     return candidates_serializers.Candidates(**candidate.model_dump())
@@ -114,20 +113,15 @@ async def update_candidate(
     :return: candidate
     """
     data = payload.model_dump(exclude_none=True)
-    if data.get("password"):
-        data["password"] = hash_helper.get_password_hash(data["password"])
+
     data["updated_at"] = datetime.utcnow()
     candidate = await candidate.update({"$set": data})
 
     return candidates_serializers.Candidates(**candidate.model_dump())
 
 
-async def delete_candidate(candidate_uuid: str):
+async def delete_candidate(candidate: Candidate):
     """
     Async function to delete candidate.
     """
-
-    candidate = await Candidate.find_one(Candidate.uuid == uuid.UUID(candidate_uuid))
-    if not candidate:
-        raise CandidateNotFound
     await candidate.delete()

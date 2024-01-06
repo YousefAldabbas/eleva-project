@@ -15,7 +15,6 @@ class Candidate(Document):
     first_name: str = Field(max_length=255)
     last_name: str = Field(max_length=255)
     email: Annotated[EmailStr, Indexed(unique=True)] = Field(max_length=255)
-    password: str = Field(max_length=255)
     career_level: str = Field(max_length=255)
     job_major: str = Field(max_length=255)
     years_of_experience: int = Field(default=0)

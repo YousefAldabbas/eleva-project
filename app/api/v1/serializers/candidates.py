@@ -4,7 +4,7 @@ from uuid import UUID
 
 from beanie import PydanticObjectId
 from fastapi import Query
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, EmailStr, field_validator, model_validator
 
 from app.core.constants import CANDIDATE_SUPPORTED_FILTERS
 from app.core.enums import Gender, Order
@@ -56,7 +56,6 @@ class UpdateCandidateSerializer(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None
-    password: Optional[str] = None
     career_level: Optional[str] = None
     job_major: Optional[str] = None
     years_of_experience: Optional[int] = None
@@ -66,6 +65,19 @@ class UpdateCandidateSerializer(BaseModel):
     city: Optional[str] = None
     salary: Optional[int] = None
     gender: Optional[Gender] = None
+
+    @model_validator(mode="after")
+    def validate_fields(self):
+        """
+        Validate fields to be updated
+        if no fields to update raise ValueError
+        """
+
+        data = self.model_dump(exclude_none=True)
+        if not data:
+            raise ValueError("No fields to update")
+
+        return self
 
 
 class CandidatesSearchSerializer(BaseModel):
@@ -121,3 +133,11 @@ class GenerateReportOut(ResponseModel):
     """
 
     data: Any
+
+
+class DeleteCandidateOut(ResponseModel):
+    """
+    Delete Candidate Out Serializer
+    """
+
+    data: None = None
