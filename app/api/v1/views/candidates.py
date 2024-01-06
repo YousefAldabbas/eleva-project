@@ -6,6 +6,7 @@ from app.api.v1.dependancies.validate_authorization import (
 )
 from app.api.v1.serializers import candidates as candidates_serializers
 from app.api.v1.services import candidates as candidates_service
+from app.core.constants import ResponseMessages
 from app.core.utils import response_handler
 
 router = APIRouter()
@@ -17,7 +18,11 @@ async def get_current_candidate(candidate: AuthorizedCandidate):
     API endpoint to get current candidate information.
     """
 
-    return response_handler(data=candidate, status=status.HTTP_200_OK)
+    return response_handler(
+        data=candidates_serializers.Candidates(**candidate.model_dump()),
+        status=status.HTTP_200_OK,
+        message=ResponseMessages.Retrieved,
+    )
 
 
 @router.post("", response_model=candidates_serializers.CandidateOut)
@@ -29,6 +34,7 @@ async def create_candidate(payload: candidates_serializers.RegisterCandidateSeri
     return response_handler(
         data=await candidates_service.create_candidate(payload),
         status=status.HTTP_201_CREATED,
+        message=ResponseMessages.Created,
     )
 
 
@@ -44,12 +50,13 @@ async def update_user(
     return response_handler(
         data=await candidates_service.update_candidate(candidate, paylaod),
         status=status.HTTP_202_ACCEPTED,
+        message=ResponseMessages.Updated,
     )
 
 
 @router.delete(
     "/{candidate_uuid}",
-    # response_model=candidates_serializers.CandidateOut,
+    response_model=candidates_serializers.CandidateOut,
     dependencies=[Depends(has_group("user"))],
 )
 async def delete_candidate(candidate_uuid: str):
@@ -60,6 +67,7 @@ async def delete_candidate(candidate_uuid: str):
     return response_handler(
         data=await candidates_service.delete_candidate(candidate_uuid),
         status=status.HTTP_202_ACCEPTED,
+        message=ResponseMessages.Deleted,
     )
 
 
@@ -77,6 +85,7 @@ async def search_candidates(
     return response_handler(
         data=await candidates_service.get_all_candidates(search),
         status=status.HTTP_200_OK,
+        message=ResponseMessages.Retrieved,
     )
 
 
@@ -100,4 +109,5 @@ async def generate_report(
     return response_handler(
         data=await candidates_service.generate_report(page_size, page),
         status=status.HTTP_200_OK,
+        message=ResponseMessages.Retrieved,
     )

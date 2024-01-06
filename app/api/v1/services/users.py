@@ -1,5 +1,6 @@
 import re
 import uuid
+from datetime import datetime
 
 from app.api.v1.serializers import users as users_serializers
 from app.core.constants import USER_SUPPORTED_FILTERS
@@ -79,7 +80,9 @@ async def create_user(payload: users_serializers.RegisterUserSerializer) -> User
         raise UserEmailAlreadyExists
 
     data["password"] = hash_helper.get_password_hash(data["password"])
-    return await User(**data).insert()
+    user = await User(**data).insert()
+
+    return users_serializers.User(**user.model_dump())
 
 
 async def update_user(
@@ -92,6 +95,11 @@ async def update_user(
     :param payload: UpdateUserSerializer
     :return: user
     """
-    if payload.password:
-        payload.password = hash_helper.get_password_hash(payload.password)
-    return await user.update(payload.model_dump())
+    data = payload.model_dump(exclude_none=True)
+    if data.get("password"):
+        data["password"] = hash_helper.get_password_hash(payload.password)
+
+    data["updated_at"] = datetime.utcnow()
+    user = await user.update(payload.model_dump())
+
+    return users_serializers.User(**user.model_dump())

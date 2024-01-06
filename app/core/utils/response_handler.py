@@ -3,6 +3,7 @@ from typing import Any, Optional
 from asgi_correlation_id.context import correlation_id
 from fastapi import status
 from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 
@@ -25,6 +26,8 @@ def response_handler(
                 message = "Data retrieved successfully"
             case 201:
                 message = "Data created successfully"
+            case 202:
+                message = "Data updated successfully"
             case 400:
                 message = "Bad Request"
             case 401:
@@ -36,14 +39,30 @@ def response_handler(
             case 500:
                 message = "Internal Server Error"
             case _:
-                message = "Internal Server Error"
+                message = None
 
-    return {
-        "data": jsonable_encoder(data),
-        "status": status,
-        "message": message,
-        "request_id": correlation_id.get(),
-    }
+    #  in case the status code is not provided
+    if not message:
+        if 200 <= status < 300:
+            message = "Data retrieved successfully"
+        elif 300 <= status < 400:
+            message = "User redirected"
+        elif 400 <= status < 500:
+            message = "Bad Request"
+        else:
+            message = "OK"
+
+    return JSONResponse(
+        status_code=status,
+        content=jsonable_encoder(
+            ResponseModel(
+                data=data,
+                status=status,
+                message=message,
+                request_id=correlation_id.get(),
+            )
+        ),
+    )
 
 
 class ResponseModel(BaseModel):

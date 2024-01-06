@@ -81,6 +81,7 @@ class CandidatesSearchSerializer(BaseModel):
     order: Optional[Order] = Query(default=Order.ASC)
     first_name: Optional[str] = Query(None)
     last_name: Optional[str] = Query(None)
+    email: Optional[EmailStr] = Query(None)
     career_level: Optional[str] = Query(None)
     job_major: Optional[str] = Query(None)
     years_of_experience: Optional[int] = Query(None)

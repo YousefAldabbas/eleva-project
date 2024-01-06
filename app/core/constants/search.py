@@ -1,6 +1,7 @@
 CANDIDATE_SUPPORTED_FILTERS = {
     "first_name",
     "last_name",
+    "email",
     "career_level",
     "job_major",
     "years_of_experience",
@@ -15,4 +16,5 @@ CANDIDATE_SUPPORTED_FILTERS = {
 USER_SUPPORTED_FILTERS = {
     "first_name",
     "last_name",
+    "email",
 }

@@ -1,5 +1,6 @@
 import re
 import uuid
+from datetime import datetime
 
 from app.api.v1.serializers import candidates as candidates_serializers
 from app.core.constants import CANDIDATE_SUPPORTED_FILTERS
@@ -75,7 +76,8 @@ async def get_candidate(candidate_uuid: str) -> Candidate:
     candidate = await Candidate.find_one(Candidate.uuid == candidate_uuid)
     if not candidate:
         raise CandidateNotFound
-    return candidate
+
+    return candidates_serializers.Candidates(**candidate.model_dump())
 
 
 async def create_candidate(
@@ -93,7 +95,9 @@ async def create_candidate(
         raise CandidateEmailAlreadyExists
 
     data["password"] = hash_helper.get_password_hash(data["password"])
-    return await Candidate(**data).insert()
+    candidate = await Candidate(**data).insert()
+
+    return candidates_serializers.Candidates(**candidate.model_dump())
 
 
 async def update_candidate(
@@ -109,7 +113,10 @@ async def update_candidate(
     data = payload.model_dump(exclude_none=True)
     if data.get("password"):
         data["password"] = hash_helper.get_password_hash(data["password"])
-    return await candidate.update({"$set": data})
+    data["updated_at"] = datetime.utcnow()
+    candidate = await candidate.update({"$set": data})
+
+    return candidates_serializers.Candidates(**candidate.model_dump())
 
 
 async def delete_candidate(candidate_uuid: str):

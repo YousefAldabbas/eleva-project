@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, status
 
+from app.core.constants import ResponseMessages
 from app.core.database import check_mongo_connection
 from app.core.utils import ResponseModel, response_handler
 
@@ -13,4 +14,4 @@ async def health_check():
     """
     API endpoint to check the health of the application.
     """
-    return response_handler(status=status.HTTP_200_OK)
+    return response_handler(status=status.HTTP_200_OK, message=ResponseMessages.Healthy)
