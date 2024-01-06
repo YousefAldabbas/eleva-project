@@ -58,7 +58,9 @@ class JWTHelper:
         if expires_delta:
             expire = datetime.utcnow() + expires_delta
         else:
-            expire = datetime.utcnow() + timedelta(minutes=930)
+            expire = datetime.utcnow() + timedelta(
+                minutes=get_settings(AppSettings).ACCESS_TOKEN_EXPIRE_MINUTES
+            )
         to_encode = {
             "uuid": user.uuid,
             "group": group.value,
@@ -145,6 +147,15 @@ class JWTHelper:
         """
         payload = self.decode_token(token)
         return self.create_access_token_from_refresh_token(payload)
+
+    def get_expiration_time(self):
+        """
+        Get expiration time
+        :return: expiration time
+        """
+        return datetime.utcnow() + timedelta(
+            minutes=get_settings(AppSettings).ACCESS_TOKEN_EXPIRE_MINUTES
+        )
 
 
 jwt_helper = JWTHelper()

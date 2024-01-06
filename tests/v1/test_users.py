@@ -35,7 +35,7 @@ def test_user_login(client_test: TestClient, data_management: DataManagement):
         "password": data_management.get("user")["password"],
     }
     response = client_test.post(
-        "/v1/auth/users/login",
+        "/v1/auth/login",
         json=payload,
     )
     assert response.status_code == status.HTTP_200_OK
@@ -56,7 +56,7 @@ def test_invalid_user_login(client_test: TestClient, data_management: DataManage
         "password": "invalid_password",
     }
     response = client_test.post(
-        "/v1/auth/users/login",
+        "/v1/auth/login",
         json=payload,
     )
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -75,7 +75,6 @@ def test_get_all_users(client_test: TestClient, data_management: DataManagement)
     data_management.add("users", response.json()["data"])
 
 
-
 def test_get_user_profile(client_test: TestClient, data_management: DataManagement):
     response = client_test.get(
         f"/v1/users/me",
@@ -86,6 +85,7 @@ def test_get_user_profile(client_test: TestClient, data_management: DataManageme
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["status"] == status.HTTP_200_OK
     data_management.add("user_profile", response.json()["data"])
+
 
 def test_get_user_by_uuid(client_test: TestClient, data_management: DataManagement):
     response = client_test.get(
@@ -98,7 +98,10 @@ def test_get_user_by_uuid(client_test: TestClient, data_management: DataManageme
     assert response.json()["status"] == status.HTTP_200_OK
     data_management.add("user_by_uuid", response.json()["data"])
 
-def test_get_user_by_uuid_not_found(client_test: TestClient, data_management: DataManagement):
+
+def test_get_user_by_uuid_not_found(
+    client_test: TestClient, data_management: DataManagement
+):
     response = client_test.get(
         f"/v1/users/{uuid.uuid4()}",
         headers={
@@ -107,6 +110,7 @@ def test_get_user_by_uuid_not_found(client_test: TestClient, data_management: Da
     )
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert response.json()["status"] == status.HTTP_404_NOT_FOUND
+
 
 def test_update_user(client_test: TestClient, data_management: DataManagement):
     payload = {
@@ -121,3 +125,16 @@ def test_update_user(client_test: TestClient, data_management: DataManagement):
     )
     assert response.status_code == status.HTTP_202_ACCEPTED
     assert response.json()["status"] == status.HTTP_202_ACCEPTED
+
+
+def test_refresh_token(client_test: TestClient, data_management: DataManagement):
+    payload = {
+        "refresh_token": data_management.get("token")["refresh_token"],
+    }
+    response = client_test.post(
+        "/v1/auth/refresh",
+        json=payload,
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["status"] == status.HTTP_200_OK
+    data_management.add("token", response.json()["data"])
