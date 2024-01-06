@@ -5,7 +5,7 @@ class InvalidCredentials(Exception):
     """Exception raised when user email already exists"""
 
     def __init__(self):
-        self.status_code = status.HTTP_400_BAD_REQUEST
+        self.status_code = status.HTTP_401_UNAUTHORIZED
         self.message = "Invalid credentials"
         super().__init__(self.status_code, self.message)
 

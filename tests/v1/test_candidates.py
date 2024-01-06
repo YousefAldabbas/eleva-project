@@ -80,8 +80,8 @@ def test_get_candidate(client_test: TestClient, data_management: DataManagement)
     data_management.add("candidate_token", auth_response.json()["data"]["access_token"])
 
 
-def candidate_access_all_candidates_unallowed(
-    client_test: TestClient, data_management: DataManagement
+def access_all_candidates_unallowed(
+    client_test: TestClient
 ):
     response = client_test.get(
         "/v1/candidates/all-candidates?page=1&page_size=10&order=asc"

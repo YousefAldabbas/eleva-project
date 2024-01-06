@@ -50,6 +50,19 @@ def test_user_login(client_test: TestClient, data_management: DataManagement):
     data_management.add("user_token", _data)
 
 
+def test_invalid_user_login(client_test: TestClient, data_management: DataManagement):
+    payload = {
+        "email": data_management.get("user")["email"],
+        "password": "invalid_password",
+    }
+    response = client_test.post(
+        "/v1/auth/users/login",
+        json=payload,
+    )
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.json()["status"] == status.HTTP_401_UNAUTHORIZED
+
+
 def test_get_all_users(client_test: TestClient, data_management: DataManagement):
     response = client_test.get(
         "/v1/users",
@@ -60,3 +73,27 @@ def test_get_all_users(client_test: TestClient, data_management: DataManagement)
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["status"] == status.HTTP_200_OK
     data_management.add("users", response.json()["data"])
+
+
+
+def test_get_user_profile(client_test: TestClient, data_management: DataManagement):
+    response = client_test.get(
+        f"/v1/users/me",
+        headers={
+            "Authorization": f"{data_management.get('user_token')['access_token']}"
+        },
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["status"] == status.HTTP_200_OK
+    data_management.add("user_profile", response.json()["data"])
+
+def test_get_user_by_uuid(client_test: TestClient, data_management: DataManagement):
+    response = client_test.get(
+        f"/v1/users/{data_management.get('user_profile')['uuid']}",
+        headers={
+            "Authorization": f"{data_management.get('user_token')['access_token']}"
+        },
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["status"] == status.HTTP_200_OK
+    data_management.add("user_by_uuid", response.json()["data"])
