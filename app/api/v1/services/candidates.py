@@ -19,6 +19,9 @@ async def generate_report(page_size: int, page: int):
         .limit(page_size)
         .to_list()
     )
+    
+    candidates = [candidate.model_dump() for candidate in candidates]
+
     logger.info(f"Generating CSV report for {len(candidates)} candidates")
     return sync_generate_csv_report(candidates)
 

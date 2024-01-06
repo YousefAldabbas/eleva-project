@@ -91,23 +91,16 @@ async def search_candidates(
 
 @router.get(
     "/generate-report",
-    response_model=candidates_serializers.GenerateReportOut,
     dependencies=[Depends(has_group("user"))],
 )
-async def generate_report(
-    response: Response, page_size: int = Query(100), page: int = Query(1)
-):
+async def generate_report(page_size: int = Query(100), page: int = Query(1)):
     """
     API endpoint to generate candidates report.
     """
     # background_tasks.add_task(candidates_service.generate_report)
-    response.headers[
-        "Content-Disposition"
-    ] = "attachment; filename=candidates_report.csv"
-    response.headers["Content-Type"] = "text/csv"
 
-    return response_handler(
-        data=await candidates_service.generate_report(page_size, page),
-        status=status.HTTP_200_OK,
-        message=ResponseMessages.Retrieved,
+    return Response(
+        content=await candidates_service.generate_report(page_size, page),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=candidates_report.csv"},
     )
