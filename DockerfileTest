@@ -1,0 +1,26 @@
+# this docker file will use to run the tests in the CI
+
+FROM python:3.10
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# Set work directory
+WORKDIR /app
+
+# Install poetry
+RUN pip install poetry
+
+# Copy only the pyproject.toml and poetry.lock first to leverage Docker caching
+COPY pyproject.toml poetry.lock /app/
+
+# Install dependencies
+RUN poetry install --no-dev
+
+# Copy the rest of the application
+COPY . /app
+
+
+#  Command to run the tests
+CMD ["poetry", "run", "pytest", "-x"]
