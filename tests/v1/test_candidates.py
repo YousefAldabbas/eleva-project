@@ -28,7 +28,7 @@ def test_get_all_candidates(client_test: TestClient, data_management: DataManage
     assert response.json()["status"] == status.HTTP_200_OK
 
 
-def test_generate_report(client_test: TestClient, data_management: DataManagement):
+def test_generate_report(client_test: TestClient):
     auth_payload = {"email": "user@example.com", "password": "string"}
     auth_response = client_test.post("/v1/auth/users/login", json=auth_payload)
     assert auth_response.status_code == 200
@@ -60,7 +60,8 @@ def test_create_candidate(client_test: TestClient, data_management: DataManageme
         "gender": "Male",
     }
     response = client_test.post("/v1/candidates", json=payload)
-    assert response.status_code == 200
+
+    assert response.status_code == status.HTTP_201_CREATED
     assert response.json()["status"] == status.HTTP_201_CREATED
 
     data_management.add("candidate", response.json()["data"])
@@ -74,7 +75,9 @@ def test_get_candidate(client_test: TestClient, data_management: DataManagement)
     }
 
     auth_response = client_test.post("/v1/auth/candidates/login", json=auth_payload)
-    assert auth_response.status_code == 200
+
+    assert auth_response.status_code == status.HTTP_200_OK
+    assert auth_response.json()["status"] == status.HTTP_200_OK
 
     data_management.add("candidate_token", auth_response.json()["data"]["access_token"])
 
@@ -86,7 +89,7 @@ def candidate_access_all_candidates_unallowed(
         "/v1/candidates/all-candidates?page=1&page_size=10&order=asc",
         headers={"Authorization": f"{data_management.get('candidate_token')}"},
     )
-    # assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json()["status"] == status.HTTP_401_UNAUTHORIZED
 
 
@@ -99,7 +102,7 @@ def test_update_candidate(client_test: TestClient, data_management: DataManageme
         json=payload,
         headers={"Authorization": data_management.get("candidate_token")},
     )
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_202_ACCEPTED
     assert response.json()["status"] == status.HTTP_202_ACCEPTED
 
 
@@ -110,7 +113,7 @@ def test_candidate_get_his_profile(
         "/v1/candidates/me",
         headers={"Authorization": data_management.get("candidate_token")},
     )
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
     assert response.json()["status"] == status.HTTP_200_OK
 
 
@@ -119,5 +122,5 @@ def test_delete_candidate(client_test: TestClient, data_management: DataManageme
         f"/v1/candidates/{data_management.get('candidate')['uuid']}",
         headers={"Authorization": data_management.get("user_token")["access_token"]},
     )
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_202_ACCEPTED
     assert response.json()["status"] == status.HTTP_202_ACCEPTED

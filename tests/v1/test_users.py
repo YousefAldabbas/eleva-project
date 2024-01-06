@@ -11,13 +11,6 @@ def generate_uuid():
     return uuid.uuid4().hex[:6]
 
 
-def test_get_all_users(client_test: TestClient, data_management: DataManagement):
-    response = client_test.get("/v1/users")
-    assert response.status_code == 200
-    assert response.json()["status"] == status.HTTP_200_OK
-    data_management.add("users", response.json()["data"])
-
-
 def test_create_user(client_test: TestClient, data_management: DataManagement):
     payload = {
         "first_name": "string",
@@ -29,7 +22,7 @@ def test_create_user(client_test: TestClient, data_management: DataManagement):
         "/v1/users",
         json=payload,
     )
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_201_CREATED
     assert response.json()["status"] == status.HTTP_201_CREATED
     _data = response.json()["data"]
     _data["password"] = payload["password"]
@@ -45,7 +38,7 @@ def test_user_login(client_test: TestClient, data_management: DataManagement):
         "/v1/auth/users/login",
         json=payload,
     )
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
     assert response.json()["status"] == status.HTTP_200_OK
     data_management.add("token", response.json()["data"])
 
@@ -55,3 +48,15 @@ def test_user_login(client_test: TestClient, data_management: DataManagement):
     }
 
     data_management.add("user_token", _data)
+
+
+def test_get_all_users(client_test: TestClient, data_management: DataManagement):
+    response = client_test.get(
+        "/v1/users",
+        headers={
+            "Authorization": f"{data_management.get('user_token')['access_token']}"
+        },
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["status"] == status.HTTP_200_OK
+    data_management.add("users", response.json()["data"])
