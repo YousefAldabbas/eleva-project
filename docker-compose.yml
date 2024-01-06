@@ -11,7 +11,6 @@ services:
       - "host.docker.internal:host-gateway" # Required for Docker on Mac
     depends_on:
       - mongodb # Depends on the MongoDB service
-      - tests # Depends on the tests service
     environment:
       MONGO_DB_HOST: mongodb
       MONGO_DB_PORT: 27017
@@ -33,7 +32,6 @@ services:
       - mongodb_data:/data/db # Volume for MongoDB data persistence
     networks:
       - mynetwork
-
 
 networks:
   mynetwork:
