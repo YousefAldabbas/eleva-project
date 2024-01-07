@@ -12,8 +12,8 @@ WORKDIR /app
 # Install poetry
 RUN pip install poetry
 
-# Copy only the pyproject.toml and poetry.lock first to leverage Docker caching
-COPY pyproject.toml poetry.lock /app/
+# Copy pyproject.toml to the work directory
+COPY pyproject.toml /app
 
 # Install dependencies
 RUN poetry install --no-dev

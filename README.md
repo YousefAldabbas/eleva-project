@@ -42,9 +42,15 @@ git clone https://github.com/YousefAldabbas/eleva-project.git
 cd eleva-project
 ```
 
-3. **Run the application**:
+
+3. **Run the tests**:
 
 ```bash
-docker-compose -f docker-compose.yml up -d --build
+docker-compose -f docker-compose.test.yml up --build
 ```
 
+4. **Run the application**:
+
+```bash
+docker-compose -f docker-compose.prod.yml up -d --build
+```
