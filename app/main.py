@@ -1,7 +1,6 @@
 import time
 from contextlib import asynccontextmanager
 
-import dotenv
 import structlog
 from asgi_correlation_id import CorrelationIdMiddleware
 from asgi_correlation_id.context import correlation_id
@@ -14,13 +13,9 @@ from app.core.database import init_database_connection
 from app.core.utils import logger
 from app.middleware import ExceptionHandlerMiddleware
 
-dotenv.load_dotenv(".env")
-
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):  # type: ignore
-    """Initialize application services."""
-    # Initialize database connection
     await init_database_connection(_app)
 
     logger.info("Startup complete")
@@ -28,10 +23,7 @@ async def lifespan(_app: FastAPI):  # type: ignore
     logger.info("Shutdown complete")
 
 
-app = FastAPI(
-    title="ELEVATUS",
-    lifespan=lifespan,
-)
+app = FastAPI(title="ELEVATUS", lifespan=lifespan, root_path="/elevatus")
 
 app.include_router(v1_router)
 

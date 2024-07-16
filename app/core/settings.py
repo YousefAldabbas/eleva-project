@@ -1,11 +1,11 @@
 import functools
-from typing import TypeVar
 
 import dotenv
 from pydantic_settings import BaseSettings
 
+dotenv.load_dotenv()
+class MongoDBSettings(BaseSettings):
 
-class MongoDbSettings(BaseSettings):
     HOST: str
     PORT: int
     USERNAME: str
@@ -20,9 +20,10 @@ class MongoDbSettings(BaseSettings):
         env_file = ".env"
         env_prefix = "MONGO_DB_"
         case_sensitive = True
+        extra = "ignore"
 
 
-class AppSettings(BaseSettings):
+class JWTSettings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
@@ -34,12 +35,6 @@ class AppSettings(BaseSettings):
         extra = "ignore"
 
 
-TSettings = TypeVar("TSettings", bound=BaseSettings)
-
-
-def get_settings(cls: type[TSettings]) -> TSettings:
-    dotenv.load_dotenv()
-    return cls()
-
-
-get_settings = functools.lru_cache(get_settings)  # Mypy moment
+class Settings:
+    MONGO_DB = MongoDBSettings() # type: ignore
+    JWT = JWTSettings() # type: ignore

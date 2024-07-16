@@ -1,99 +1,65 @@
 import uuid
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from fastapi.encoders import jsonable_encoder
 from jose import JWTError, jwt
 
 from app.core.enums import Group, Token
-from app.core.exceptions import (
-    CandidateNotFound,
-    InvalidToken,
-    InvalidTokenPayload,
-    Unauthorized,
-    UserNotFound,
-)
-from app.core.settings import AppSettings, get_settings
+from app.core import exceptions as exc
+from app.core.settings import Settings
 from app.models import Candidate, User
 
 
 class JWTHelper:
-    """
-    Helper class for JWT operations
-    """
-
     def decode_token(self, token):
-        """
-        Decode token
-        :param token:
-        :return: token payload
-        """
         return jwt.decode(
-            token,
-            get_settings(AppSettings).SECRET_KEY,
-            algorithms=[get_settings(AppSettings).ALGORITHM],
+            token=token,
+            key=Settings.JWT.SECRET_KEY,
+            algorithms=[Settings.JWT.ALGORITHM],
         )
 
     def create_access_token(self, user: User | Candidate, group: Group = Group.USER):
-        """
-        Create access token
-        :param user:
-        :param group:
-        """
         return self._genereate_token(user, group)
 
     def create_refresh_token(self, user: User | Candidate, group: Group = Group.USER):
-        """ "
-        Create refresh token
-        :param user:
-        :param group:
-        """
         return self._genereate_token(user, group, timedelta(days=7))
 
     def _genereate_token(
         self,
         user: User | Candidate,
         group: Group,
-        expires_delta: timedelta = None,
+        expires_delta: timedelta | None = None,
     ):
         if expires_delta:
-            expire = datetime.utcnow() + expires_delta
+            expire = datetime.now(UTC) + expires_delta
         else:
-            expire = datetime.utcnow() + timedelta(
-                minutes=get_settings(AppSettings).ACCESS_TOKEN_EXPIRE_MINUTES
+            expire = datetime.now(UTC) + timedelta(
+                minutes=Settings.JWT.ACCESS_TOKEN_EXPIRE_MINUTES
             )
         to_encode = {
             "uuid": user.uuid,
             "group": group.value,
-            "scope": Token.ACCESS.value if not expires_delta else Token.REFRESH.value,
+            "scope": Token.REFRESH.value if expires_delta else Token.ACCESS.value,
             "exp": int(expire.timestamp()),
         }
         to_encode = jsonable_encoder(to_encode)
-        encoded_jwt = jwt.encode(
+        return jwt.encode(
             to_encode,
-            get_settings(AppSettings).SECRET_KEY,
-            algorithm=get_settings(AppSettings).ALGORITHM,
+            Settings.JWT.SECRET_KEY,
+            algorithm=Settings.JWT.ALGORITHM,
         )
-        return encoded_jwt
 
     async def get_user_from_token(self, token: str, group: str = Group.USER.value):
-        """
-        Get user from token
-        :param token:
-        :param group:
-        :return: User | Candidate
-
-        this method will raise AuthorizationException if token is invalid or user not found
-        """
         try:
             payload = self.decode_token(token)
             self._check_user_group(payload, group)
-            user_uuid: str = payload.get("uuid")
+            user_uuid = payload.get("uuid")
 
             if user_uuid is None:
-                raise InvalidTokenPayload
+                raise exc.InvalidTokenPayload
 
             if payload["scope"] != Token.ACCESS.value:
-                raise InvalidToken
+                raise exc.InvalidToken
 
             obj = (
                 await User.find_one(User.uuid == uuid.UUID(user_uuid))
@@ -101,60 +67,40 @@ class JWTHelper:
                 else await Candidate.find_one(Candidate.uuid == uuid.UUID(user_uuid))
             )
             if not obj:
-                raise UserNotFound if group == Group.USER else CandidateNotFound
+                raise exc.UserNotFound if group == Group.USER else exc.CandidateNotFound
             return obj
-        except (InvalidTokenPayload, UserNotFound, CandidateNotFound) as e:
+        except (exc.InvalidTokenPayload, exc.UserNotFound, exc.CandidateNotFound) as e:
             raise e
         except JWTError as e:
-            raise Unauthorized
+            raise exc.Unauthorized
 
     def _check_user_group(self, token_payload: dict, group: str):
-        """
-        Check if user has group
-        :param token_payload:
-        :param group:
-
-        this method will raise InvalidTokenPayload if user has no group
-        """
         if token_payload["group"] != group:
-            raise Unauthorized
+            raise exc.Unauthorized
 
     def create_access_token_from_refresh_token(self, payload: dict):
-        """
-        Create access token from refresh token
-        :param payload:
-        :return: access token
-        """
         to_encode = {
             "uuid": payload["uuid"],
             "group": payload["group"],
             "scope": Token.ACCESS,
-            "exp": int(datetime.utcnow() + timedelta(minutes=930).timestamp()),
+            "exp": int(datetime.now(UTC) + timedelta(minutes=930).timestamp()),
         }
         to_encode = jsonable_encoder(to_encode)
-        encoded_jwt = jwt.encode(
+        return jwt.encode(
             to_encode,
-            get_settings(AppSettings).SECRET_KEY,
-            algorithm=get_settings(AppSettings).ALGORITHM,
+            Settings.JWT.SECRET_KEY,
+            algorithm=Settings.JWT.ALGORITHM,
         )
-        return encoded_jwt
 
     def get_access_token_from_refresh_token(self, token: str):
-        """
-        Get access token from refresh token
-        :param token:
-        :return: access token
-        """
+
         payload = self.decode_token(token)
         return self.create_access_token_from_refresh_token(payload)
 
     def get_expiration_time(self):
-        """
-        Get expiration time
-        :return: expiration time
-        """
-        return datetime.utcnow() + timedelta(
-            minutes=get_settings(AppSettings).ACCESS_TOKEN_EXPIRE_MINUTES
+
+        return datetime.now(UTC) + timedelta(
+            minutes=Settings.JWT.ACCESS_TOKEN_EXPIRE_MINUTES
         )
 
 
