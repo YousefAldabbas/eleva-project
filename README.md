@@ -5,6 +5,14 @@
 # ELEVA - Simple FastAPI Application
 This is a simple FastAPI application that uses Beanie as an ODM for MongoDB.
 
+## TODO
+- [ ] Update python and dependencies versions
+- [ ] Enhance Dockerfile & remove unnecessary packages
+- [ ] Code clean-up: Remove unnecessary comments & unused imports/code
+- [ ] Add type annotations to the code
+- [ ] Add pre-commit hooks
+- [ ] Enhance the tests
+
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
